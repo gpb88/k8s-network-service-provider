@@ -1,0 +1,41 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+**/bin/*
+
+# Test artifacts
+*.test
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+
+# Dependencies / workspace
+# vendor/
+go.work
+go.work.sum
+
+# Environment
+.env
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs / temp
+*.tmp
+*.log
+
+# AI workflow artifacts (keep specs and test plans)
+.ai/*
+!.ai/specs/
+!.ai/test-plans/
