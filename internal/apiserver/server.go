@@ -262,7 +262,7 @@ func New(cfg *config.Config, logger *slog.Logger, handler oapigen.ServerInterfac
 	r.Use(requestLoggingMiddleware(logger))
 	r.Use(requestTimeoutMiddleware(cfg.Server.RequestTimeout))
 
-	spec, err := v1alpha1.GetSwagger()
+	spec, err := v1alpha1.GetSpec()
 	if err != nil {
 		logger.Warn("failed to load OpenAPI spec, request validation disabled", "error", err)
 	} else {

@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
+	"time"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -23,6 +24,7 @@ func NewClient(kubeconfig string) (kubernetes.Interface, error) {
 		return nil, fmt.Errorf("building kubernetes config: %w", err)
 	}
 
+	restCfg.Timeout = 3 * time.Second
 	client, err := kubernetes.NewForConfig(restCfg)
 	if err != nil {
 		return nil, fmt.Errorf("creating kubernetes client: %w", err)
