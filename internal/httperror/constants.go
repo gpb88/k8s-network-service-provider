@@ -2,6 +2,11 @@
 package httperror
 
 const (
-	InternalTitle  = "Internal Server Error"
-	InternalDetail = "an unexpected error occurred"
+	InternalTitle              = "Internal Server Error"
+	InternalDetail             = "an unexpected error occurred"
+	InvalidArgumentTitle       = "Invalid argument"
+	InvalidArgumentMultiDetail = "multiple validation errors occurred"
+	NotFoundTitle              = "Not found"
+	AlreadyExistsTitle         = "Already exists"
+	FailedPreconditionTitle    = "Failed precondition"
 )
