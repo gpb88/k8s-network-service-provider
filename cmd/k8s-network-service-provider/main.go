@@ -15,6 +15,7 @@ import (
 	"github.com/dcm-project/k8s-network-service-provider/internal/config"
 	"github.com/dcm-project/k8s-network-service-provider/internal/handlers/composite"
 	"github.com/dcm-project/k8s-network-service-provider/internal/handlers/health"
+	"github.com/dcm-project/k8s-network-service-provider/internal/handlers/network"
 	k8s "github.com/dcm-project/k8s-network-service-provider/internal/kubernetes"
 	"github.com/dcm-project/k8s-network-service-provider/internal/registration"
 )
@@ -59,7 +60,8 @@ func run(logger *slog.Logger) error {
 	store := k8s.NewK8sNetworkStore(k8sClient, k8sCfg, logger)
 
 	healthHandler := health.NewHandler(store, logger, time.Now(), version)
-	apiHandler := composite.NewHandler(healthHandler)
+	networkHandler := network.NewHandler(store, logger)
+	apiHandler := composite.NewHandler(healthHandler, networkHandler)
 	strictAdapter := oapigen.NewStrictHandlerWithOptions(apiHandler, nil, oapigen.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc:  apiserver.NewRequestErrorHandler(logger),
 		ResponseErrorHandlerFunc: apiserver.NewResponseErrorHandler(logger),

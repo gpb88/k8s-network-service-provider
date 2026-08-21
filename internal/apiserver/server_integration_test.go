@@ -21,7 +21,10 @@ import (
 	"github.com/dcm-project/k8s-network-service-provider/internal/config"
 	"github.com/dcm-project/k8s-network-service-provider/internal/handlers/composite"
 	"github.com/dcm-project/k8s-network-service-provider/internal/handlers/health"
+	"github.com/dcm-project/k8s-network-service-provider/internal/handlers/network"
 	"github.com/dcm-project/k8s-network-service-provider/internal/store"
+
+	v1alpha1 "github.com/dcm-project/k8s-network-service-provider/api/v1alpha1"
 )
 
 type syncBuffer struct {
@@ -50,6 +53,51 @@ func (m *mockHealthChecker) CheckHealth(_ context.Context) error { return m.err 
 
 var _ store.HealthChecker = (*mockHealthChecker)(nil)
 
+type mockNetworkRepository struct {
+	CreateFunc      func(ctx context.Context, spec v1alpha1.NetworkSpec, id string) (*v1alpha1.Network, error)
+	GetFunc         func(ctx context.Context, networkID string) (*v1alpha1.Network, error)
+	ListFunc        func(ctx context.Context, maxPageSize int32, pageToken string) (*v1alpha1.NetworkList, error)
+	DeleteFunc      func(ctx context.Context, networkID string) error
+	CheckHealthFunc func(ctx context.Context) error
+}
+
+func (m *mockNetworkRepository) Create(ctx context.Context, spec v1alpha1.NetworkSpec, id string) (*v1alpha1.Network, error) {
+	if m.CreateFunc == nil {
+		panic("unexpected call to Create")
+	}
+	return m.CreateFunc(ctx, spec, id)
+}
+
+func (m *mockNetworkRepository) Get(ctx context.Context, networkID string) (*v1alpha1.Network, error) {
+	if m.GetFunc == nil {
+		panic("unexpected call to Get")
+	}
+	return m.GetFunc(ctx, networkID)
+}
+
+func (m *mockNetworkRepository) List(ctx context.Context, maxPageSize int32, pageToken string) (*v1alpha1.NetworkList, error) {
+	if m.ListFunc == nil {
+		panic("unexpected call to List")
+	}
+	return m.ListFunc(ctx, maxPageSize, pageToken)
+}
+
+func (m *mockNetworkRepository) Delete(ctx context.Context, networkID string) error {
+	if m.DeleteFunc == nil {
+		panic("unexpected call to Delete")
+	}
+	return m.DeleteFunc(ctx, networkID)
+}
+
+func (m *mockNetworkRepository) CheckHealth(ctx context.Context) error {
+	if m.CheckHealthFunc == nil {
+		return nil
+	}
+	return m.CheckHealthFunc(ctx)
+}
+
+var _ store.NetworkRepository = (*mockNetworkRepository)(nil)
+
 var _ = Describe("HTTP Server", func() {
 	startServer := func(cfg *config.Config, logBuf *syncBuffer, signals []os.Signal, wrappers ...func(http.Handler) http.Handler) (
 		addr string,
@@ -65,7 +113,9 @@ var _ = Describe("HTTP Server", func() {
 
 		checker := &mockHealthChecker{}
 		hh := health.NewHandler(checker, logger, time.Now(), "0.0.1-test")
-		apiHandler := composite.NewHandler(hh)
+		networkRepo := &mockNetworkRepository{}
+		nh := network.NewHandler(networkRepo, logger)
+		apiHandler := composite.NewHandler(hh, nh)
 		strictAdapter := oapigen.NewStrictHandlerWithOptions(apiHandler, nil, oapigen.StrictHTTPServerOptions{})
 		srv := apiserver.New(cfg, logger, strictAdapter)
 		Expect(srv).NotTo(BeNil())

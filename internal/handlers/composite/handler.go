@@ -1,25 +1,26 @@
-// Package composite wires health and unimplemented network handlers for incremental delivery.
+// Package composite wires health and network handlers.
 package composite
 
 import (
 	"context"
 
-	v1alpha1 "github.com/dcm-project/k8s-network-service-provider/api/v1alpha1"
 	oapigen "github.com/dcm-project/k8s-network-service-provider/internal/api/server"
 	"github.com/dcm-project/k8s-network-service-provider/internal/handlers/health"
-	"github.com/dcm-project/k8s-network-service-provider/internal/httperror"
-	"github.com/dcm-project/k8s-network-service-provider/internal/util"
+	"github.com/dcm-project/k8s-network-service-provider/internal/handlers/network"
 )
 
-// Handler implements StrictServerInterface by delegating health to the health handler
-// and returning not-implemented responses for network operations.
+// Handler implements StrictServerInterface by delegating to specialized handlers.
 type Handler struct {
-	health *health.Handler
+	health  *health.Handler
+	network *network.Handler
 }
 
-// NewHandler creates a composite handler for health and stub network routes.
-func NewHandler(healthHandler *health.Handler) *Handler {
-	return &Handler{health: healthHandler}
+// NewHandler creates a composite handler.
+func NewHandler(healthHandler *health.Handler, networkHandler *network.Handler) *Handler {
+	return &Handler{
+		health:  healthHandler,
+		network: networkHandler,
+	}
 }
 
 var _ oapigen.StrictServerInterface = (*Handler)(nil)
@@ -28,30 +29,18 @@ func (h *Handler) GetHealth(ctx context.Context, req oapigen.GetHealthRequestObj
 	return h.health.GetHealth(ctx, req)
 }
 
-func notImplemented() v1alpha1.Error {
-	return v1alpha1.Error{
-		Type:   v1alpha1.INTERNAL,
-		Title:  httperror.InternalTitle,
-		Detail: util.Ptr("network API not implemented"),
-	}
+func (h *Handler) ListNetworks(ctx context.Context, req oapigen.ListNetworksRequestObject) (oapigen.ListNetworksResponseObject, error) {
+	return h.network.ListNetworks(ctx, req)
 }
 
-func (h *Handler) ListNetworks(_ context.Context, _ oapigen.ListNetworksRequestObject) (oapigen.ListNetworksResponseObject, error) {
-	err := notImplemented()
-	return oapigen.ListNetworks500ApplicationProblemPlusJSONResponse(err), nil
+func (h *Handler) CreateNetwork(ctx context.Context, req oapigen.CreateNetworkRequestObject) (oapigen.CreateNetworkResponseObject, error) {
+	return h.network.CreateNetwork(ctx, req)
 }
 
-func (h *Handler) CreateNetwork(_ context.Context, _ oapigen.CreateNetworkRequestObject) (oapigen.CreateNetworkResponseObject, error) {
-	err := notImplemented()
-	return oapigen.CreateNetwork500ApplicationProblemPlusJSONResponse(err), nil
+func (h *Handler) GetNetwork(ctx context.Context, req oapigen.GetNetworkRequestObject) (oapigen.GetNetworkResponseObject, error) {
+	return h.network.GetNetwork(ctx, req)
 }
 
-func (h *Handler) GetNetwork(_ context.Context, _ oapigen.GetNetworkRequestObject) (oapigen.GetNetworkResponseObject, error) {
-	err := notImplemented()
-	return oapigen.GetNetwork500ApplicationProblemPlusJSONResponse(err), nil
-}
-
-func (h *Handler) DeleteNetwork(_ context.Context, _ oapigen.DeleteNetworkRequestObject) (oapigen.DeleteNetworkResponseObject, error) {
-	err := notImplemented()
-	return oapigen.DeleteNetwork500ApplicationProblemPlusJSONResponse(err), nil
+func (h *Handler) DeleteNetwork(ctx context.Context, req oapigen.DeleteNetworkRequestObject) (oapigen.DeleteNetworkResponseObject, error) {
+	return h.network.DeleteNetwork(ctx, req)
 }
