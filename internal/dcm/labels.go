@@ -31,7 +31,6 @@ func Labels(instanceID string) map[string]string {
 // InstanceSelector returns a label selector string matching a specific instance.
 func InstanceSelector(instanceID string) string {
 	return labels.Set{
-
 		LabelInstanceID:  instanceID,
 		LabelManagedBy:   ValueManagedByDCM,
 		LabelServiceType: ValueServiceType,
