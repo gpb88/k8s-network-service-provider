@@ -828,6 +828,19 @@ Day-2 `UPDATE` is out of v1 scope. No `PATCH` handler tests apply to v1.
 - **When:** `Ptr(true)` is called
 - **Then:** Returns pointer to `true`
 
+### TC-U124: Reject node_ports when ports lack names
+
+- **Priority:** High
+- **Type:** Unit
+- **Given:** DCM request with
+  `provider_hints.kubernetes.node_ports = {"http": 30080}` but ports array
+  contains unnamed ports
+- **When:** Create request is validated
+- **Then:**
+  - Returns `InvalidArgumentError`
+  - Error field: `"ports"`
+  - Error message: `"all ports must have names when node_ports are specified"`
+
 ---
 
 ## Test Execution
